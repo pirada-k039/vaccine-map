@@ -1,34 +1,80 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { UserService } from './user.service';
+import { Crud, CrudController } from '@nestjsx/crud';
+import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  constructor(private userService: UserService){}
+
+  @Post('')
+  async postUser( @Body() newUser: CreateUserDto): Promise<UserEntity>{
+    const user = new UserEntity();
+    user.username = newUser.username;
+    user.password = newUser.password;
+    user.firstName = newUser.firstName;
+    user.lastName = newUser.lastName;
+    user.email = newUser.email;
+    user.telNum = newUser.telNum;
+    return await this.userService.createOrUpdate(user);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async getAllUsers(): Promise<UserEntity[]> {
+    return await this.userService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  async getUser(@Param('id') id: number):Promise<UserEntity>{
+    return await this.userService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @Put(':id')
+  async updateUser(
+    @Param('id') id: number,
+    @Body() createUserDto: CreateUserDto,
+  ):Promise<UserEntity>{
+    const user = await this.userService.findOne(id);
+    user.username = createUserDto.username;
+    user.password = createUserDto.password;
+    user.firstName = createUserDto.firstName;
+    user.lastName = createUserDto.lastName;
+    user.email = createUserDto.email;
+    user.telNum = createUserDto.telNum;
+    return await this.userService.createOrUpdate(user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  async deleteUser(@Param('id') id: number): Promise<any> {
+    await this.userService.delete(id);
+    return { success: true };
   }
+
+
+  // @Post()
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.userService.create(createUserDto);
+  // }
+
+  // @Get()
+  // findAll() {
+  //   return this.userService.findAll();
+  // }
+
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.userService.findOne(+id);
+  // }
+
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  //   return this.userService.update(+id, updateUserDto);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.userService.remove(+id);
+  // }
 }
